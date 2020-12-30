@@ -32,6 +32,7 @@ target_compile_features(error PUBLIC cxx_std_17)
 set(sources
     caesar/error/domain_error.cpp
     caesar/error/error_code.cpp
+    caesar/error/error.cpp
     caesar/error/out_of_range.cpp
     )
 target_sources(error PRIVATE ${sources})
@@ -46,6 +47,7 @@ target_include_directories(
 # Add test sources.
 set(tests
     test/error_code_test.cpp
+    test/error_test.cpp
     )
 
 add_executable(error-test ${tests})
