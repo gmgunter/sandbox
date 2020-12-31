@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.18)
 project(error LANGUAGES CXX)
 
 # Import third-party dependencies.
-find_package(GTest  REQUIRED CONFIG)
+find_package(GTest          REQUIRED CONFIG)
+find_package(tl-expected    REQUIRED CONFIG)
 
 # Enable some compiler warnings (supported by gcc & clang).
 set(warnings
@@ -33,6 +34,7 @@ set(sources
     caesar/error/domain_error.cpp
     caesar/error/error_code.cpp
     caesar/error/error.cpp
+    caesar/error/expected.cpp
     caesar/error/out_of_range.cpp
     )
 target_sources(error PRIVATE ${sources})
@@ -44,10 +46,18 @@ target_include_directories(
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>
     )
 
+# Link to imported targets.
+target_link_libraries(
+    error
+    PUBLIC
+        tl::expected
+    )
+
 # Add test sources.
 set(tests
     test/error_code_test.cpp
     test/error_test.cpp
+    test/expected_test.cpp
     )
 
 add_executable(error-test ${tests})
