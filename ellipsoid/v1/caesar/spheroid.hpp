@@ -50,14 +50,14 @@ public:
      *
      * \see Spheroid::a
      */
-    constexpr double
+    [[nodiscard]] constexpr double
     semimajor_axis() const noexcept
     {
         return a();
     }
 
     /** Same as Spheroid::semimajor_axis() */
-    constexpr double
+    [[nodiscard]] constexpr double
     a() const noexcept
     {
         return a_;
@@ -70,14 +70,14 @@ public:
      *
      * \see Spheroid::b
      */
-    constexpr double
+    [[nodiscard]] constexpr double
     semiminor_axis() const noexcept
     {
         return b();
     }
 
     /** Same as Spheroid::semiminor_axis() */
-    constexpr double
+    [[nodiscard]] constexpr double
     b() const noexcept
     {
         return a() * (1. - f());
@@ -88,14 +88,14 @@ public:
      *
      * \see Spheroid::f
      */
-    constexpr double
+    [[nodiscard]] constexpr double
     flattening() const noexcept
     {
         return f();
     }
 
     /** Same as Spheroid::flattening() */
-    constexpr double
+    [[nodiscard]] constexpr double
     f() const noexcept
     {
         return f_;
@@ -106,7 +106,7 @@ public:
      *
      * \see Spheroid::flattening
      */
-    constexpr double
+    [[nodiscard]] constexpr double
     inverse_flattening() const
     {
         return 1. / f();
@@ -121,7 +121,7 @@ public:
      * n = \frac{a - b}{a + b}
      * \f]
      */
-    constexpr double
+    [[nodiscard]] constexpr double
     third_flattening() const noexcept
     {
         return f() / (2. - f());
@@ -136,7 +136,7 @@ public:
      * e = \sqrt{1 - \frac{b^2}{a^2}}
      * \f]
      */
-    double
+    [[nodiscard]] double
     eccentricity() const
     {
         return std::sqrt(squared_eccentricity());
@@ -147,21 +147,21 @@ public:
      *
      * \see Spheroid::eccentricity
      */
-    constexpr double
+    [[nodiscard]] constexpr double
     squared_eccentricity() const noexcept
     {
         return f() * (2. - f());
     }
 
     /** Compare two Spheroid objects. */
-    friend constexpr bool
+    [[nodiscard]] friend constexpr bool
     operator==(const Spheroid& lhs, const Spheroid& rhs) noexcept
     {
         return lhs.a() == rhs.a() and lhs.f() == rhs.f();
     }
 
     /** \copydoc operator==(const Spheroid&, const Spheroid&) */
-    friend constexpr bool
+    [[nodiscard]] friend constexpr bool
     operator!=(const Spheroid& lhs, const Spheroid& rhs) noexcept
     {
         return not(lhs == rhs);
