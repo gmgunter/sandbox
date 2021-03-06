@@ -109,6 +109,8 @@ public:
     /**
      * Return a TimeDelta object representing the specified number of days.
      *
+     * A day is assumed to contain exactly 86400 seconds.
+     *
      * \tparam T an arithmetic type representing the number of days
      *
      * ## Notes
@@ -130,6 +132,8 @@ public:
     /**
      * Return a TimeDelta object representing the specified number of hours.
      *
+     * An hour is assumed to contain exactly 3600 seconds.
+     *
      * \tparam T an arithmetic type representing the number of hours
      *
      * ## Notes
@@ -150,6 +154,8 @@ public:
 
     /**
      * Return a TimeDelta object representing the specified number of minutes.
+     *
+     * A minute is assumed to contain exactly 60 seconds.
      *
      * \tparam T an arithmetic type representing the number of minutes
      *

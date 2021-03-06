@@ -18,7 +18,7 @@ option(CAESAR_WERROR "Treat compiler warnings as errors" ON)
 
 # Import third-party dependencies.
 find_package(absl REQUIRED CONFIG COMPONENTS numeric)
-#find_package(date REQUIRED CONFIG COMPONENTS date date-tz)
+find_package(date REQUIRED CONFIG COMPONENTS date date-tz)
 find_package(doctest REQUIRED CONFIG)
 find_package(fmt REQUIRED CONFIG)
 
@@ -45,7 +45,6 @@ add_library(caesar::datetime ALIAS datetime)
 target_compile_features(datetime PUBLIC cxx_std_17)
 
 # Add sources.
-include(CaesarParseFile)
 caesar_parse_file(sources.txt sources)
 target_sources(datetime PRIVATE ${sources})
 
@@ -61,8 +60,8 @@ target_link_libraries(
     datetime
     PUBLIC
         absl::numeric
-#        date::date
-#        date::date-tz
+        date::date
+        date::date-tz
     PRIVATE
         fmt::fmt
     )
