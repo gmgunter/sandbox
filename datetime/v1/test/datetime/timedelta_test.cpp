@@ -32,8 +32,8 @@ struct TimeDeltaTest {
     template<typename T>
     using Femtoseconds = std::chrono::duration<T, std::femto>;
 
-    // Approximately one trillion years, in seconds
-    constexpr static double trillion_years_sec = 1e12 * 365 * 24 * 60 * 60;
+    // Approximately the number of seconds in one quintillion years
+    constexpr static double quintillion_years_sec = 1e18 * 365 * 24 * 60 * 60;
 
     // TimeDelta representing one picosecond
     constexpr static auto one_picosec = cs::TimeDelta::picoseconds(1);
@@ -94,13 +94,13 @@ TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.to_chrono_duration")
 TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.min")
 {
     const auto dt = cs::TimeDelta::min();
-    CHECK_LT(dt.total_seconds(), -trillion_years_sec);
+    CHECK_LT(dt.total_seconds(), -quintillion_years_sec);
 }
 
 TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.max")
 {
     const auto dt = cs::TimeDelta::max();
-    CHECK_GT(dt.total_seconds(), trillion_years_sec);
+    CHECK_GT(dt.total_seconds(), quintillion_years_sec);
 }
 
 TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.resolution")
@@ -109,7 +109,7 @@ TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.resolution")
     CHECK_EQ(dt, one_picosec);
 }
 
-TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.days")
+TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.days_factory")
 {
     SUBCASE("integer")
     {
@@ -130,7 +130,7 @@ TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.days")
     }
 }
 
-TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.hours")
+TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.hours_factory")
 {
     SUBCASE("integer")
     {
@@ -151,7 +151,7 @@ TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.hours")
     }
 }
 
-TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.minutes")
+TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.minutes_factory")
 {
     SUBCASE("integer")
     {
@@ -172,7 +172,7 @@ TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.minutes")
     }
 }
 
-TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.seconds")
+TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.seconds_factory")
 {
     SUBCASE("integer")
     {
@@ -193,7 +193,7 @@ TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.seconds")
     }
 }
 
-TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.milliseconds")
+TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.milliseconds_factory")
 {
     SUBCASE("integer")
     {
@@ -214,7 +214,7 @@ TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.milliseconds")
     }
 }
 
-TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.microseconds")
+TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.microseconds_factory")
 {
     SUBCASE("integer")
     {
@@ -235,7 +235,7 @@ TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.microseconds")
     }
 }
 
-TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.nanoseconds")
+TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.nanoseconds_factory")
 {
     SUBCASE("integer")
     {
@@ -256,7 +256,7 @@ TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.nanoseconds")
     }
 }
 
-TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.picoseconds")
+TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.picoseconds_factory")
 {
     SUBCASE("integer")
     {
@@ -521,4 +521,105 @@ TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.abs")
 
     CHECK_EQ(cs::abs(dt1), dt1);
     CHECK_EQ(cs::abs(dt2), dt1);
+}
+
+TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.trunc")
+{
+    const auto s = cs::TimeDelta::seconds(1);
+    const auto ms = cs::TimeDelta::milliseconds(1);
+
+    SUBCASE("positive")
+    {
+        const auto dt1 = 2 * s + 500 * ms;
+        const auto dt2 = cs::trunc(dt1, s);
+
+        CHECK_EQ(dt2, 2 * s);
+    }
+
+    SUBCASE("negative")
+    {
+        const auto dt1 = -2 * s - 500 * ms;
+        const auto dt2 = cs::trunc(dt1, s);
+
+        CHECK_EQ(dt2, -2 * s);
+    }
+}
+
+TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.floor")
+{
+    const auto s = cs::TimeDelta::seconds(1);
+    const auto ms = cs::TimeDelta::milliseconds(1);
+
+    SUBCASE("positive")
+    {
+        const auto dt1 = 2 * s + 500 * ms;
+        const auto dt2 = cs::floor(dt1, s);
+
+        CHECK_EQ(dt2, 2 * s);
+    }
+
+    SUBCASE("negative")
+    {
+        const auto dt1 = -2 * s - 500 * ms;
+        const auto dt2 = cs::floor(dt1, s);
+
+        CHECK_EQ(dt2, -3 * s);
+    }
+}
+
+TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.ceil")
+{
+    const auto s = cs::TimeDelta::seconds(1);
+    const auto ms = cs::TimeDelta::milliseconds(1);
+
+    SUBCASE("positive")
+    {
+        const auto dt1 = 2 * s + 500 * ms;
+        const auto dt2 = cs::ceil(dt1, s);
+
+        CHECK_EQ(dt2, 3 * s);
+    }
+
+    SUBCASE("negative")
+    {
+        const auto dt1 = -2 * s - 500 * ms;
+        const auto dt2 = cs::ceil(dt1, s);
+
+        CHECK_EQ(dt2, -2 * s);
+    }
+}
+
+TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.round")
+{
+    const auto s = cs::TimeDelta::seconds(1);
+    const auto ms = cs::TimeDelta::milliseconds(1);
+
+    SUBCASE("round_down")
+    {
+        const auto dt1 = 2 * s + 499 * ms;
+        const auto dt2 = cs::round(dt1, s);
+
+        CHECK_EQ(dt2, 2 * s);
+    }
+
+    SUBCASE("round_up")
+    {
+        const auto dt1 = 2 * s + 501 * ms;
+        const auto dt2 = cs::round(dt1, s);
+
+        CHECK_EQ(dt2, 3 * s);
+    }
+
+    SUBCASE("round_even")
+    {
+        const auto dt1 = 2 * s + 500 * ms;
+        const auto dt2 = cs::round(dt1, s);
+
+        CHECK_EQ(dt2, 2 * s);
+
+        const auto dt3 = 3 * s + 500 * ms;
+        const auto dt4 = cs::round(dt3, s);
+
+        CHECK_EQ(dt4, 4 * s);
+    }
 }

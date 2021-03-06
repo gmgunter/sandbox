@@ -13,11 +13,11 @@ namespace caesar {
  * picosecond resolution
  *
  * Internally, TimeDelta stores a 128-bit integer tick count of picoseconds,
- * allowing it to represent spans of trillions of years without loss of
- * precision.
+ * allowing it to represent an extremely wide range of values (up to several
+ * quintillion years!) without loss of precision.
  *
  * TimeDelta objects can be constructed from or converted to instances of
- * std::chrono::duration. In addition, the factory functions `days()`,
+ * std::chrono::duration. In addition, the static member functions `days()`,
  * `hours()`, `minutes()`, `seconds()`, `milliseconds()`, `microseconds()`,
  * `nanoseconds()`, and `picoseconds()` can be used to create TimeDelta objects.
  *
@@ -55,7 +55,7 @@ public:
      * Construct a new TimeDelta object from a std::chrono::duration.
      *
      * If the input has sub-picosecond resolution, it will be truncated to an
-     * integer multiple of `TimeDelta::resolution`.
+     * integer multiple of `TimeDelta::resolution()`.
      *
      * ## Notes
      *
@@ -531,6 +531,102 @@ abs(const TimeDelta& dt)
     using Duration = std::chrono::duration<TimeDelta::Rep, TimeDelta::Period>;
     const auto d = Duration(dt);
     return TimeDelta(std::chrono::abs(d));
+}
+
+/**
+ * Truncate to a multiple of the specified period.
+ *
+ * Returns the nearest integer multiple of period not greater in magnitude than
+ * dt.
+ *
+ * ## Notes
+ *
+ * The behavior is undefined if period is zero.
+ *
+ * \see floor(const TimeDelta&, const TimeDelta&)
+ * \see ceil(const TimeDelta&, const TimeDelta&)
+ * \see round(const TimeDelta&, const TimeDelta&)
+ */
+constexpr TimeDelta
+trunc(const TimeDelta& dt, const TimeDelta& period)
+{
+    return dt - (dt % period);
+}
+
+/**
+ * Round down to a multiple of the specified period.
+ *
+ * Returns the nearest integer multiple of period that is less than or equal to
+ * dt.
+ *
+ * ## Notes
+ *
+ * The behavior is undefined if period is zero.
+ *
+ * \see trunc(const TimeDelta&, const TimeDelta&)
+ * \see ceil(const TimeDelta&, const TimeDelta&)
+ * \see round(const TimeDelta&, const TimeDelta&)
+ */
+constexpr TimeDelta
+floor(const TimeDelta& dt, const TimeDelta& period)
+{
+    const auto t = trunc(dt, period);
+    return t <= dt ? t : t - abs(period);
+}
+
+/**
+ * Round up to a multiple of the specified period.
+ *
+ * Returns the nearest integer multiple of period that is greater than or equal
+ * to dt.
+ *
+ * ## Notes
+ *
+ * The behavior is undefined if period is zero.
+ *
+ * \see trunc(const TimeDelta&, const TimeDelta&)
+ * \see floor(const TimeDelta&, const TimeDelta&)
+ * \see round(const TimeDelta&, const TimeDelta&)
+ */
+constexpr TimeDelta
+ceil(const TimeDelta& dt, const TimeDelta& period)
+{
+    const auto t = trunc(dt, period);
+    return t >= dt ? t : t + abs(period);
+}
+
+/**
+ * Round to the nearest multiple of the specified period.
+ *
+ * Returns the integer multiple of period that is closest to dt. If there are
+ * two such values, returns the one that is an even multiple of period.
+ *
+ * ## Notes
+ *
+ * The behavior is undefined if period is zero.
+ *
+ * \see trunc(const TimeDelta&, const TimeDelta&)
+ * \see floor(const TimeDelta&, const TimeDelta&)
+ * \see ceil(const TimeDelta&, const TimeDelta&)
+ */
+constexpr TimeDelta
+round(const TimeDelta& dt, const TimeDelta& period)
+{
+    const auto lower = floor(dt, period);
+    const auto upper = lower + abs(period);
+
+    const auto lower_diff = dt - lower;
+    const auto upper_diff = upper - dt;
+
+    if (lower_diff < upper_diff) {
+        return lower;
+    }
+    if (upper_diff < lower_diff) {
+        return upper;
+    }
+
+    // In halfway cases, return the value that's an even multiple of period.
+    return (lower.count() / period.count()) & 1 ? upper : lower;
 }
 
 template<class FromRep, class FromPeriod>
