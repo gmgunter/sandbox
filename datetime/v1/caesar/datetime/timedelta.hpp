@@ -79,17 +79,18 @@ public:
      * Casting is subject to truncation as with any `static_cast` to `ToRep`.
      */
     template<class ToRep, class ToPeriod>
-    explicit constexpr operator std::chrono::duration<ToRep, ToPeriod>() const;
+    [[nodiscard]] explicit constexpr
+    operator std::chrono::duration<ToRep, ToPeriod>() const;
 
     /** Return the smallest representable TimeDelta. */
-    static constexpr TimeDelta
+    [[nodiscard]] static constexpr TimeDelta
     min() noexcept
     {
         return TimeDelta(std::chrono::duration<Rep, Period>::min());
     }
 
     /** Return the largest representable TimeDelta. */
-    static constexpr TimeDelta
+    [[nodiscard]] static constexpr TimeDelta
     max() noexcept
     {
         return TimeDelta(std::chrono::duration<Rep, Period>::max());
@@ -99,7 +100,7 @@ public:
      * Return the smallest possible difference between non-equal TimeDelta
      * objects.
      */
-    static constexpr TimeDelta
+    [[nodiscard]] static constexpr TimeDelta
     resolution() noexcept
     {
         return TimeDelta(std::chrono::duration<Rep, Period>(1));
@@ -118,7 +119,7 @@ public:
      * `static_cast` to `TimeDelta::Rep`.
      */
     template<typename T>
-    static constexpr TimeDelta
+    [[nodiscard]] static constexpr TimeDelta
     days(T d)
     {
         static_assert(is_arithmetic<T>);
@@ -139,7 +140,7 @@ public:
      * `static_cast` to `TimeDelta::Rep`.
      */
     template<typename T>
-    static constexpr TimeDelta
+    [[nodiscard]] static constexpr TimeDelta
     hours(T h)
     {
         static_assert(is_arithmetic<T>);
@@ -160,7 +161,7 @@ public:
      * `static_cast` to `TimeDelta::Rep`.
      */
     template<typename T>
-    static constexpr TimeDelta
+    [[nodiscard]] static constexpr TimeDelta
     minutes(T m)
     {
         static_assert(is_arithmetic<T>);
@@ -181,7 +182,7 @@ public:
      * `static_cast` to `TimeDelta::Rep`.
      */
     template<typename T>
-    static constexpr TimeDelta
+    [[nodiscard]] static constexpr TimeDelta
     seconds(T s)
     {
         static_assert(is_arithmetic<T>);
@@ -203,7 +204,7 @@ public:
      * `static_cast` to `TimeDelta::Rep`.
      */
     template<typename T>
-    static constexpr TimeDelta
+    [[nodiscard]] static constexpr TimeDelta
     milliseconds(T ms)
     {
         static_assert(is_arithmetic<T>);
@@ -225,7 +226,7 @@ public:
      * `static_cast` to `TimeDelta::Rep`.
      */
     template<typename T>
-    static constexpr TimeDelta
+    [[nodiscard]] static constexpr TimeDelta
     microseconds(T us)
     {
         static_assert(is_arithmetic<T>);
@@ -247,7 +248,7 @@ public:
      * `static_cast` to `TimeDelta::Rep`.
      */
     template<typename T>
-    static constexpr TimeDelta
+    [[nodiscard]] static constexpr TimeDelta
     nanoseconds(T ns)
     {
         static_assert(is_arithmetic<T>);
@@ -269,7 +270,7 @@ public:
      * `static_cast` to `TimeDelta::Rep`.
      */
     template<typename T>
-    static constexpr TimeDelta
+    [[nodiscard]] static constexpr TimeDelta
     picoseconds(T ps)
     {
         static_assert(is_arithmetic<T>);
@@ -278,14 +279,14 @@ public:
     }
 
     /** Return the tick count. */
-    constexpr Rep
+    [[nodiscard]] constexpr Rep
     count() const noexcept
     {
         return duration_.count();
     }
 
     /** Return the total number of seconds in the duration. */
-    double
+    [[nodiscard]] double
     total_seconds() const
     {
         using Seconds = std::chrono::duration<double>;
@@ -293,14 +294,14 @@ public:
     }
 
     /** Returns a copy of the TimeDelta object. */
-    constexpr TimeDelta
+    [[nodiscard]] constexpr TimeDelta
     operator+() const noexcept
     {
         return *this;
     }
 
     /** Returns the negation of the TimeDelta object. */
-    constexpr TimeDelta
+    [[nodiscard]] constexpr TimeDelta
     operator-() const
     {
         return TimeDelta(-duration_);
@@ -402,7 +403,7 @@ public:
     }
 
     /** Add two TimeDelta objects. */
-    friend constexpr TimeDelta
+    [[nodiscard]] friend constexpr TimeDelta
     operator+(const TimeDelta& lhs, const TimeDelta& rhs)
     {
         auto out = lhs;
@@ -411,7 +412,7 @@ public:
     }
 
     /** Subtract a TimeDelta object from another. */
-    friend constexpr TimeDelta
+    [[nodiscard]] friend constexpr TimeDelta
     operator-(const TimeDelta& lhs, const TimeDelta& rhs)
     {
         auto out = lhs;
@@ -420,7 +421,7 @@ public:
     }
 
     /** Multiply a TimeDelta object by a scalar. */
-    friend constexpr TimeDelta
+    [[nodiscard]] friend constexpr TimeDelta
     operator*(const TimeDelta& lhs, Rep rhs)
     {
         auto out = lhs;
@@ -429,7 +430,7 @@ public:
     }
 
     /** \copydoc operator*(const TimeDelta&, Rep) */
-    friend constexpr TimeDelta
+    [[nodiscard]] friend constexpr TimeDelta
     operator*(Rep lhs, const TimeDelta& rhs)
     {
         auto out = rhs;
@@ -444,7 +445,7 @@ public:
      *
      * Division by zero has undefined behavior.
      */
-    friend constexpr TimeDelta
+    [[nodiscard]] friend constexpr TimeDelta
     operator/(const TimeDelta& lhs, Rep rhs)
     {
         auto out = lhs;
@@ -459,7 +460,7 @@ public:
      *
      * The behavior is undefined if the modulus is zero.
      */
-    friend constexpr TimeDelta
+    [[nodiscard]] friend constexpr TimeDelta
     operator%(const TimeDelta& lhs, Rep rhs)
     {
         auto out = lhs;
@@ -472,49 +473,49 @@ public:
      *
      * Equivalent to `lhs % rhs.count()`.
      */
-    friend constexpr TimeDelta
+    [[nodiscard]] friend constexpr TimeDelta
     operator%(const TimeDelta& lhs, const TimeDelta& rhs)
     {
         return lhs % rhs.count();
     }
 
     /** Compare two TimeDelta objects. */
-    friend constexpr bool
+    [[nodiscard]] friend constexpr bool
     operator==(const TimeDelta& lhs, const TimeDelta& rhs) noexcept
     {
         return lhs.duration_ == rhs.duration_;
     }
 
     /** \copydoc operator==(const TimeDelta&, const TimeDelta&) */
-    friend constexpr bool
+    [[nodiscard]] friend constexpr bool
     operator!=(const TimeDelta& lhs, const TimeDelta& rhs) noexcept
     {
         return not(lhs == rhs);
     }
 
     /** \copydoc operator==(const TimeDelta&, const TimeDelta&) */
-    friend constexpr bool
+    [[nodiscard]] friend constexpr bool
     operator<(const TimeDelta& lhs, const TimeDelta& rhs) noexcept
     {
         return lhs.duration_ < rhs.duration_;
     }
 
     /** \copydoc operator==(const TimeDelta&, const TimeDelta&) */
-    friend constexpr bool
+    [[nodiscard]] friend constexpr bool
     operator>(const TimeDelta& lhs, const TimeDelta& rhs) noexcept
     {
         return lhs.duration_ > rhs.duration_;
     }
 
     /** \copydoc operator==(const TimeDelta&, const TimeDelta&) */
-    friend constexpr bool
+    [[nodiscard]] friend constexpr bool
     operator<=(const TimeDelta& lhs, const TimeDelta& rhs) noexcept
     {
         return not(lhs > rhs);
     }
 
     /** \copydoc operator==(const TimeDelta&, const TimeDelta&) */
-    friend constexpr bool
+    [[nodiscard]] friend constexpr bool
     operator>=(const TimeDelta& lhs, const TimeDelta& rhs) noexcept
     {
         return not(lhs < rhs);
@@ -525,7 +526,7 @@ private:
 };
 
 /** Return the absolute value of the input TimeDelta. */
-constexpr TimeDelta
+[[nodiscard]] constexpr TimeDelta
 abs(const TimeDelta& dt)
 {
     using Duration = std::chrono::duration<TimeDelta::Rep, TimeDelta::Period>;
@@ -547,7 +548,7 @@ abs(const TimeDelta& dt)
  * \see ceil(const TimeDelta&, const TimeDelta&)
  * \see round(const TimeDelta&, const TimeDelta&)
  */
-constexpr TimeDelta
+[[nodiscard]] constexpr TimeDelta
 trunc(const TimeDelta& dt, const TimeDelta& period)
 {
     return dt - (dt % period);
@@ -567,7 +568,7 @@ trunc(const TimeDelta& dt, const TimeDelta& period)
  * \see ceil(const TimeDelta&, const TimeDelta&)
  * \see round(const TimeDelta&, const TimeDelta&)
  */
-constexpr TimeDelta
+[[nodiscard]] constexpr TimeDelta
 floor(const TimeDelta& dt, const TimeDelta& period)
 {
     const auto t = trunc(dt, period);
@@ -588,7 +589,7 @@ floor(const TimeDelta& dt, const TimeDelta& period)
  * \see floor(const TimeDelta&, const TimeDelta&)
  * \see round(const TimeDelta&, const TimeDelta&)
  */
-constexpr TimeDelta
+[[nodiscard]] constexpr TimeDelta
 ceil(const TimeDelta& dt, const TimeDelta& period)
 {
     const auto t = trunc(dt, period);
@@ -609,7 +610,7 @@ ceil(const TimeDelta& dt, const TimeDelta& period)
  * \see floor(const TimeDelta&, const TimeDelta&)
  * \see ceil(const TimeDelta&, const TimeDelta&)
  */
-constexpr TimeDelta
+[[nodiscard]] constexpr TimeDelta
 round(const TimeDelta& dt, const TimeDelta& period)
 {
     const auto lower = floor(dt, period);
