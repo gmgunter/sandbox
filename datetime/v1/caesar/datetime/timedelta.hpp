@@ -44,9 +44,12 @@ public:
 
     /**
      * A `std::ratio` representing the tick period (i.e. the number of ticks per
-     * second).
+     * second)
      */
     using Period = std::pico;
+
+    /** A `std::chrono::duration` with the same Rep and Period */
+    using Duration = std::chrono::duration<Rep, Period>;
 
     /** Construct a new TimeDelta object representing a zero-length duration. */
     TimeDelta() = default;
@@ -86,14 +89,14 @@ public:
     [[nodiscard]] static constexpr TimeDelta
     min() noexcept
     {
-        return TimeDelta(std::chrono::duration<Rep, Period>::min());
+        return TimeDelta(Duration::min());
     }
 
     /** Return the largest representable TimeDelta. */
     [[nodiscard]] static constexpr TimeDelta
     max() noexcept
     {
-        return TimeDelta(std::chrono::duration<Rep, Period>::max());
+        return TimeDelta(Duration::max());
     }
 
     /**
@@ -103,7 +106,7 @@ public:
     [[nodiscard]] static constexpr TimeDelta
     resolution() noexcept
     {
-        return TimeDelta(std::chrono::duration<Rep, Period>(1));
+        return TimeDelta(Duration(1));
     }
 
     /**
@@ -528,15 +531,14 @@ public:
     }
 
 private:
-    std::chrono::duration<Rep, Period> duration_ = {};
+    Duration duration_ = {};
 };
 
 /** Return the absolute value of the input TimeDelta. */
 [[nodiscard]] constexpr TimeDelta
 abs(const TimeDelta& dt)
 {
-    using Duration = std::chrono::duration<TimeDelta::Rep, TimeDelta::Period>;
-    const auto d = Duration(dt);
+    const auto d = TimeDelta::Duration(dt);
     return TimeDelta(std::chrono::abs(d));
 }
 
@@ -641,19 +643,19 @@ constexpr TimeDelta::TimeDelta(
         const std::chrono::duration<FromRep, FromPeriod>& d)
     : duration_([=]() {
           static_assert(is_arithmetic<FromRep>);
-          using ToDuration = std::chrono::duration<Rep, Period>;
 
           if constexpr (std::is_floating_point_v<FromRep>) {
               // Convert from input tick period to floating-point picoseconds.
-              using PicosecsFP = std::chrono::duration<FromRep, Period>;
-              const auto p = std::chrono::duration_cast<PicosecsFP>(d);
+              using Picosecs = std::chrono::duration<FromRep, Period>;
+              const auto p = std::chrono::duration_cast<Picosecs>(d);
 
               // Cast floating-point to int128.
               const auto r = static_cast<Rep>(p.count());
-              return ToDuration(r);
+              return Duration(r);
           } else {
-              // For integral durations, we can just use duration_cast.
-              return std::chrono::duration_cast<ToDuration>(d);
+              // For integral durations, we can just use duration_cast to
+              // convert directly.
+              return std::chrono::duration_cast<Duration>(d);
           }
       }())
 {}
@@ -672,7 +674,8 @@ constexpr TimeDelta::operator std::chrono::duration<ToRep, ToPeriod>() const
         // Convert to output tick period.
         return std::chrono::duration_cast<ToDuration>(p);
     } else {
-        // For integral durations, we can just use duration_cast.
+        // For integral durations, we can just use duration_cast to convert
+        // directly.
         return std::chrono::duration_cast<ToDuration>(duration_);
     }
 }
