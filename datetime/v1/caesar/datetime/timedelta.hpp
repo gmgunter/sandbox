@@ -295,7 +295,7 @@ public:
     }
 
     /** Return the total number of seconds in the duration. */
-    [[nodiscard]] double
+    [[nodiscard]] constexpr double
     total_seconds() const
     {
         using Seconds = std::chrono::duration<double>;

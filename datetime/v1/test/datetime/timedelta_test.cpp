@@ -45,7 +45,7 @@ TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.default_construct")
     CHECK_EQ(dt.count(), 0);
 }
 
-TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.from_chrono_duration")
+TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.from_duration")
 {
     SUBCASE("integer_no_truncation")
     {
@@ -74,7 +74,7 @@ TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.from_chrono_duration")
     }
 }
 
-TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.to_chrono_duration")
+TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.to_duration")
 {
     SUBCASE("integer")
     {
@@ -300,13 +300,13 @@ TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.increment")
 {
     cs::TimeDelta dt;
 
-    SUBCASE("prefix")
+    SUBCASE("prefix_increment")
     {
         CHECK_EQ(++dt, one_picosec);
         CHECK_EQ(dt, one_picosec);
     }
 
-    SUBCASE("postfix")
+    SUBCASE("postfix_increment")
     {
         CHECK_EQ(dt++, cs::TimeDelta());
         CHECK_EQ(dt, one_picosec);
@@ -317,13 +317,13 @@ TEST_CASE_FIXTURE(TimeDeltaTest, "datetime.timedelta.decrement")
 {
     cs::TimeDelta dt;
 
-    SUBCASE("prefix")
+    SUBCASE("prefix_decrement")
     {
         CHECK_EQ(--dt, -one_picosec);
         CHECK_EQ(dt, -one_picosec);
     }
 
-    SUBCASE("postfix")
+    SUBCASE("postfix_decrement")
     {
         CHECK_EQ(dt--, cs::TimeDelta());
         CHECK_EQ(dt, -one_picosec);

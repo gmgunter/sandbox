@@ -1,6 +1,7 @@
 #include <caesar/datetime.hpp>
 
 #include <doctest/doctest.h>
+#include <sstream>
 #include <stdexcept>
 
 namespace cs = caesar;
@@ -101,6 +102,104 @@ TEST_CASE("datetime.gpstime.from_components")
     }
 }
 
+TEST_CASE("datetime.gpstime.from_time_point")
+{
+    // A std::chrono::time_point representing one hour, two minutes, and three
+    // seconds after midnight on 1980-01-06 (the GPS epoch).
+    const auto gps_epoch = cs::GPSTime::TimePoint() + std::chrono::hours(1) +
+                           std::chrono::minutes(2) + std::chrono::seconds(3);
+
+    const auto t = cs::GPSTime(gps_epoch);
+
+    CHECK_EQ(t.year(), 1980);
+    CHECK_EQ(t.month(), 1);
+    CHECK_EQ(t.day(), 6);
+    CHECK_EQ(t.hour(), 1);
+    CHECK_EQ(t.minute(), 2);
+    CHECK_EQ(t.second(), 3);
+    CHECK_EQ(t.microsecond(), 0);
+    CHECK_EQ(t.picosecond(), 0);
+}
+
+TEST_CASE("datetime.gpstime.from_string")
+{
+    SUBCASE("from_chars")
+    {
+        const auto s = "2001-02-03T04:05:06.789";
+        const auto t = cs::GPSTime(s);
+
+        CHECK_EQ(t.year(), 2001);
+        CHECK_EQ(t.month(), 2);
+        CHECK_EQ(t.day(), 3);
+        CHECK_EQ(t.hour(), 4);
+        CHECK_EQ(t.minute(), 5);
+        CHECK_EQ(t.second(), 6);
+        CHECK_EQ(t.microsecond(), 789'000);
+        CHECK_EQ(t.picosecond(), 0);
+    }
+
+    SUBCASE("from_string")
+    {
+        const std::string s = "2001-02-03T04:05:06.000007000008";
+        const auto t = cs::GPSTime(s);
+
+        CHECK_EQ(t.year(), 2001);
+        CHECK_EQ(t.month(), 2);
+        CHECK_EQ(t.day(), 3);
+        CHECK_EQ(t.hour(), 4);
+        CHECK_EQ(t.minute(), 5);
+        CHECK_EQ(t.second(), 6);
+        CHECK_EQ(t.microsecond(), 7);
+        CHECK_EQ(t.picosecond(), 8);
+    }
+
+    SUBCASE("no_subseconds")
+    {
+        const auto s = "2001-02-03T04:05:06";
+        const auto t = cs::GPSTime(s);
+
+        CHECK_EQ(t.year(), 2001);
+        CHECK_EQ(t.month(), 2);
+        CHECK_EQ(t.day(), 3);
+        CHECK_EQ(t.hour(), 4);
+        CHECK_EQ(t.minute(), 5);
+        CHECK_EQ(t.second(), 6);
+        CHECK_EQ(t.microsecond(), 0);
+        CHECK_EQ(t.picosecond(), 0);
+    }
+
+    SUBCASE("bad_format")
+    {
+        const auto s = "asdf";
+        CHECK_THROWS_AS({ cs::GPSTime{s}; }, std::invalid_argument);
+    }
+
+    SUBCASE("too_many_digits")
+    {
+        // Only up to 12 digits are allowed for subsecond components.
+        const std::string s = "2001-02-03T04:05:06.0000000000001";
+        CHECK_THROWS_AS({ cs::GPSTime{s}; }, std::invalid_argument);
+    }
+}
+
+TEST_CASE("datetime.gpstime.to_string")
+{
+    {
+        const auto t = cs::GPSTime(2000, 1, 2, 3, 4, 5, 6, 7);
+        CHECK_EQ(std::string(t), "2000-01-02T03:04:05.000006000007");
+    }
+
+    {
+        const auto t = cs::GPSTime(2000, 1, 2, 3, 4, 5);
+        CHECK_EQ(std::string(t), "2000-01-02T03:04:05");
+    }
+
+    {
+        const auto t = cs::GPSTime(2000, 1, 2, 3, 4, 5, 678'900);
+        CHECK_EQ(std::string(t), "2000-01-02T03:04:05.6789");
+    }
+}
+
 TEST_CASE("datetime.gpstime.min")
 {
     const auto t = cs::GPSTime::min();
@@ -142,7 +241,197 @@ TEST_CASE("datetime.gpstime.now")
     // Not much we can test here. now() must be some time after the day this
     // test was written.
     const auto t = cs::GPSTime::now();
-    const auto min = cs::GPSTime(2021, 3, 6, 0, 0, 0);
+    const auto today = cs::GPSTime(2021, 3, 6, 0, 0, 0);
 
-    CHECK_GE(t, min);
+    CHECK_GE(t, today);
+}
+
+TEST_CASE("datetime.gpstime.date")
+{
+    const auto t = cs::GPSTime(2001, 2, 3, 4, 5, 6, 7, 8);
+    const date::year_month_day date = t.date();
+
+    CHECK_EQ(date.year(), date::year(2001));
+    CHECK_EQ(date.month(), date::month(2));
+    CHECK_EQ(date.day(), date::day(3));
+}
+
+TEST_CASE("datetime.gpstime.time_of_day")
+{
+    const auto t = cs::GPSTime(2001, 2, 3, 4, 5, 6, 7, 8);
+    const auto tod = t.time_of_day();
+
+    CHECK_EQ(tod.hours(), std::chrono::hours(4));
+    CHECK_EQ(tod.minutes(), std::chrono::minutes(5));
+    CHECK_EQ(tod.seconds(), std::chrono::seconds(6));
+
+    const auto subseconds = decltype(tod)::precision(7'000'008);
+    CHECK_EQ(tod.subseconds(), subseconds);
+}
+
+TEST_CASE("datetime.gpstime.increment")
+{
+    cs::GPSTime t(2001, 1, 1, 0, 0, 0);
+
+    SUBCASE("prefix_increment")
+    {
+        CHECK_EQ((++t).picosecond(), 1);
+        CHECK_EQ(t.picosecond(), 1);
+    }
+
+    SUBCASE("postfix_increment")
+    {
+        CHECK_EQ((t++).picosecond(), 0);
+        CHECK_EQ(t.picosecond(), 1);
+    }
+}
+
+TEST_CASE("datetime.gpstime.decrement")
+{
+    auto t = cs::GPSTime(2001, 1, 1, 0, 0, 0);
+
+    SUBCASE("prefix_decrement")
+    {
+        CHECK_EQ((--t).picosecond(), 999'999);
+        CHECK_EQ(t.picosecond(), 999'999);
+    }
+
+    SUBCASE("postfix_decrement")
+    {
+        CHECK_EQ((t--).picosecond(), 0);
+        CHECK_EQ(t.picosecond(), 999'999);
+    }
+}
+
+TEST_CASE("datetime.gpstime.add_timedelta")
+{
+    auto t = cs::GPSTime(2000, 1, 2, 3, 4, 5, 6, 7);
+    const auto dt = cs::TimeDelta::days(12) + cs::TimeDelta::minutes(34) +
+                    cs::TimeDelta::seconds(56) +
+                    cs::TimeDelta::microseconds(78) +
+                    cs::TimeDelta::picoseconds(90);
+
+    const auto sum = cs::GPSTime(2000, 1, 14, 3, 39, 1, 84, 97);
+
+    SUBCASE("compound_assignment")
+    {
+        t += dt;
+        CHECK_EQ(t, sum);
+    }
+
+    SUBCASE("binary_operator") { CHECK_EQ(t + dt, sum); }
+}
+
+TEST_CASE("datetime.gpstime.subtract_timedelta")
+{
+    auto t = cs::GPSTime(2001, 2, 3, 4, 5, 6, 7, 8);
+    const auto dt = cs::TimeDelta::days(12) + cs::TimeDelta::minutes(34) +
+                    cs::TimeDelta::seconds(56) +
+                    cs::TimeDelta::microseconds(78) +
+                    cs::TimeDelta::picoseconds(90);
+
+    const auto diff = cs::GPSTime(2001, 1, 22, 3, 30, 9, 999'928, 999'918);
+
+    SUBCASE("compound_assignment")
+    {
+        t -= dt;
+        CHECK_EQ(t, diff);
+    }
+
+    SUBCASE("binary_operator") { CHECK_EQ(t - dt, diff); }
+}
+
+TEST_CASE("datetime.gpstime.subtract_gpstime")
+{
+    const auto t1 = cs::GPSTime(2001, 2, 3, 4, 5, 6, 7, 8);
+    const auto t2 = cs::GPSTime(2001, 1, 22, 3, 30, 9, 999'928, 999'918);
+
+    const auto dt = cs::TimeDelta::days(12) + cs::TimeDelta::minutes(34) +
+                    cs::TimeDelta::seconds(56) +
+                    cs::TimeDelta::microseconds(78) +
+                    cs::TimeDelta::picoseconds(90);
+
+    CHECK_EQ(t2 - t1, -dt);
+    CHECK_EQ(t1 - t2, dt);
+}
+
+TEST_CASE("datetime.gpstime.compare_eq")
+{
+    const auto t1 = cs::GPSTime(2000, 1, 1, 0, 0, 0);
+    const auto t2 = cs::GPSTime(2000, 1, 1, 0, 0, 0);
+    const auto t3 = cs::GPSTime(2000, 1, 1, 0, 0, 0, 0, 1);
+
+    CHECK(t1 == t1);
+    CHECK(t1 == t2);
+    CHECK_FALSE(t1 == t3);
+}
+
+TEST_CASE("datetime.gpstime.compare_ne")
+{
+    const auto t1 = cs::GPSTime(2000, 1, 1, 0, 0, 0);
+    const auto t2 = cs::GPSTime(2000, 1, 1, 0, 0, 0, 0, 1);
+    const auto t3 = cs::GPSTime(2000, 1, 1, 0, 0, 0, 0, 1);
+
+    CHECK(t1 != t2);
+    CHECK_FALSE(t2 != t3);
+}
+
+TEST_CASE("datetime.gpstime.compare_lt")
+{
+    const auto t1 = cs::GPSTime(2000, 1, 1, 0, 0, 0);
+    const auto t2 = cs::GPSTime(2000, 1, 1, 0, 0, 0);
+    const auto t3 = cs::GPSTime(2000, 1, 1, 0, 0, 0, 0, 1);
+    const auto t4 = cs::GPSTime(1999, 12, 31, 23, 59, 59);
+
+    CHECK(t1 < t3);
+    CHECK(t4 < t1);
+    CHECK_FALSE(t1 < t2);
+    CHECK_FALSE(t3 < t4);
+}
+
+TEST_CASE("datetime.gpstime.compare_gt")
+{
+    const auto t1 = cs::GPSTime(2000, 1, 1, 0, 0, 0);
+    const auto t2 = cs::GPSTime(2000, 1, 1, 0, 0, 0);
+    const auto t3 = cs::GPSTime(2000, 1, 1, 0, 0, 0, 0, 1);
+    const auto t4 = cs::GPSTime(1999, 12, 31, 23, 59, 59);
+
+    CHECK(t3 > t1);
+    CHECK(t1 > t4);
+    CHECK_FALSE(t1 > t2);
+    CHECK_FALSE(t4 > t3);
+}
+
+TEST_CASE("datetime.gpstime.compare_le")
+{
+    const auto t1 = cs::GPSTime(2000, 1, 1, 0, 0, 0);
+    const auto t2 = cs::GPSTime(2000, 1, 1, 0, 0, 0);
+    const auto t3 = cs::GPSTime(2000, 1, 1, 0, 0, 0, 0, 1);
+    const auto t4 = cs::GPSTime(1999, 12, 31, 23, 59, 59);
+
+    CHECK(t1 <= t3);
+    CHECK(t4 <= t1);
+    CHECK(t1 <= t2);
+    CHECK_FALSE(t3 <= t4);
+}
+
+TEST_CASE("datetime.gpstime.compare_ge")
+{
+    const auto t1 = cs::GPSTime(2000, 1, 1, 0, 0, 0);
+    const auto t2 = cs::GPSTime(2000, 1, 1, 0, 0, 0);
+    const auto t3 = cs::GPSTime(2000, 1, 1, 0, 0, 0, 0, 1);
+    const auto t4 = cs::GPSTime(1999, 12, 31, 23, 59, 59);
+
+    CHECK(t3 >= t1);
+    CHECK(t1 >= t4);
+    CHECK(t1 >= t2);
+    CHECK_FALSE(t4 >= t3);
+}
+
+TEST_CASE("datetime.gpstime.to_stream")
+{
+    const auto t = cs::GPSTime(2000, 1, 2, 3, 4, 5, 678'000);
+    std::ostringstream ss;
+    ss << t;
+    CHECK_EQ(ss.str(), "2000-01-02T03:04:05.678");
 }

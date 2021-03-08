@@ -251,9 +251,8 @@ public:
         // Get subseconds component.
         const Duration ss = time_of_day().subseconds();
 
-        // Truncate to microseconds (time of day is always nonnegative, so no
-        // need to use `std::chrono::floor` -- duration_cast is slightly
-        // more efficient).
+        // Truncate to microseconds (time of day is always nonnegative, so we
+        // use duration_cast instead of floor, which is slightly less efficient.
         using Microsecs = std::chrono::duration<Rep, std::micro>;
         const auto us = std::chrono::duration_cast<Microsecs>(ss);
 
@@ -288,7 +287,9 @@ public:
     constexpr GPSTime
     operator++(int)
     {
-        return GPSTime(time_point_ + Duration(1));
+        auto tmp = *this;
+        operator++();
+        return tmp;
     }
 
     /** Decrement the tick count. */
@@ -303,7 +304,9 @@ public:
     constexpr GPSTime
     operator--(int)
     {
-        return GPSTime(time_point_ - Duration(1));
+        auto tmp = *this;
+        operator--();
+        return tmp;
     }
 
     /** Perform addition in-place and return the modified result. */
