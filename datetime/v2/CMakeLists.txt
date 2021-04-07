@@ -18,6 +18,7 @@ find_package(absl REQUIRED CONFIG COMPONENTS numeric)
 find_package(date REQUIRED CONFIG COMPONENTS date date-tz)
 find_package(doctest REQUIRED CONFIG)
 find_package(fmt REQUIRED CONFIG)
+find_package(range-v3 REQUIRED CONFIG)
 
 # Enable compiler diagnostic flags.
 set(warnings
@@ -87,6 +88,7 @@ target_compile_features(time PUBLIC cxx_std_17)
 
 # Add sources.
 set(sources
+    caesar/time/datetime.cpp
     #caesar/time/gpstime.cpp
     caesar/time/timedelta.cpp
     #caesar/time/timepoint.cpp
@@ -109,6 +111,7 @@ target_link_libraries(
         absl::numeric
         date::date
         date::date-tz
+        range-v3::range-v3
     PRIVATE
         fmt::fmt
     )
@@ -118,6 +121,7 @@ if(CAESAR_TEST)
 
     # Add test sources.
     set(tests
+        test/time/datetime_test.cpp
         #test/time/gpstime_test.cpp
         test/time/timedelta_test.cpp
         #test/time/timepoint_test.cpp
